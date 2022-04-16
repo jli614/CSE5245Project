@@ -1,5 +1,5 @@
 import sys, operator, os
-import SimpleNW
+import modules.SimpleNW as SimpleNW
 import numpy as np
 MIN_COM_SIZE = 2
 

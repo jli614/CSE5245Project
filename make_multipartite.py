@@ -1,6 +1,17 @@
 import networkx as nx
 import numpy as np
 from collections import defaultdict
+import argparse
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-N', type=int, default=1000)
+    parser.add_argument('-r', type=int, default=2)
+    parser.add_argument('-c', type=int, default=25)
+    parser.add_argument('-pin', type=float, default=0.8)
+    parser.add_argument('-pout', type=float, default=0.2)
+    parser.add_argument('-name', type=str, default='MyGraph')
+    return parser.parse_args()
 
 class MulitpartiteCommunityNetwork:
     def __init__(self, N, r, c, p_in, p_out, name='MyGraph'):
@@ -12,7 +23,7 @@ class MulitpartiteCommunityNetwork:
         self.communities, self.community_map = self.map_nodes(self.c)
         self.edges = self.make_edges(p_in, p_out)
 
-    def map_nodes(self, p_in, p_out):
+    def map_nodes(self, p):
         mapping = {}
         sets = defaultdict(set)
         for n in range(self.N):
@@ -23,7 +34,7 @@ class MulitpartiteCommunityNetwork:
 
     def make_edges(self, p_in, p_out):
         edges = set()
-        for n1 in range(N):
+        for n1 in range(self.N):
             for n2 in range(n1):
                 if self.partition_map[n1] == self.partition_map[n2]:
                     continue
@@ -46,14 +57,32 @@ class MulitpartiteCommunityNetwork:
         return G
 
     def write_graph(self):
-        with open(f'{name}_edgelist.txt', 'w') as fp:
+        with open(f'{self.name}_edgelist.txt', 'w') as fp:
             for edge in self.edges:
-                fp.write(f'{edge[0]} {edge[1]}\n')
+                fp.write(f'{edge[0]}\t{edge[1]}\n')
         
-        with open(f'{name}_communities.txt', 'w') as fp:
-            for community in self.communities:
-                fp.write(f'{" ".join(map(str, sorted(community)))}\n')
+        t='\t'
+        with open(f'{self.name}_communities.txt', 'w') as fp:
+            for community in self.communities.values():
+                fp.write(f'{t.join(map(str, sorted(community)))}\n')
+
+        with open(f'{self.name}_training.txt', 'w') as fp:
+            for i, community in enumerate(self.communities.values()):
+                if i > self.c // 5:
+                    break
+                fp.write(f'{t.join(map(str, sorted(community)))}\n')
         
-        with open(f'{name}_partitions.txt', 'w') as fp:
-            for partition in self.partitions:
-                fp.write(f'{" ".join(map(str, sorted(partition)))}\n')
+        with open(f'{self.name}_partitions.txt', 'w') as fp:
+            for partition in self.partitions.values():
+                fp.write(f'{t.join(map(str, sorted(partition)))}\n')
+
+
+def main():
+
+    args = parse_args()
+
+    MP = MulitpartiteCommunityNetwork(args.N, args.r, args.c, args.pin, args.pout, args.name)
+    MP.write_graph()
+
+if __name__ == '__main__':
+    main()
