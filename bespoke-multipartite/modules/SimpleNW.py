@@ -26,7 +26,7 @@ class SimpleNW:
                 continue
             else:
                 parts = line.split(delim)
-                a,b = map(int,parts[:2])
+                a,b = list(map(int,parts[:2]))
                 if a == b:
                     continue
                 if a not in self.neighbors_dict:

@@ -174,7 +174,7 @@ def process_graph(src_node_features, K, verbose=False):
         sys.stdout.flush()
 
     all_nodes = nodes_features.keys()
-    data = numpy.array(nodes_features.values())
+    data = numpy.array(list(nodes_features.values()))
     data = zscore(data, 0)
     data = numpy.nan_to_num(data)
     label_dict = cluster_nodes(all_nodes, data, K)

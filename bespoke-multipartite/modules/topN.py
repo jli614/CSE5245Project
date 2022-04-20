@@ -21,7 +21,7 @@ class topN:
         start = 0
         end = len(self.ordered_list)
         while start<end:
-            mid = (start+end)/2
+            mid = int((start+end)/2)
             if mid == start:
                 break
             mid_val = self.ordered_list[mid][1]

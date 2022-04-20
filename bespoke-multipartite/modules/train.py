@@ -1,5 +1,5 @@
-import sys, topN, numpy
-import common
+import sys, numpy
+from . import common, topN
 from sklearn.cluster import KMeans
 
 def get_ordered_canonical_label_pairs(num_labels):
@@ -16,7 +16,7 @@ def get_ordered_canonical_label_pairs(num_labels):
 
 def get_node_score_degree(nw, node, biases, node_labels):
     neigh = nw.neighbors(node)
-    labels = map(node_labels.get, neigh)
+    labels = list(map(node_labels.get, neigh))
     labels = common.myCounter(labels)
     root_l = node_labels[node]
     score = 0
@@ -83,8 +83,9 @@ def get_seed_infos(nw, grouped_features, node_labels, num_labels, nclus):
 def make_groups(ids, gts, gt_features):
     size_dist_per_group = {}
     grouped_features = {}
-    for i in range(len(gts)):
-        size_dist_per_group.setdefault(ids[i], []).append(len(gts[i]))
+    gts_list = list(gts)
+    for i in range(len(gts_list)):
+        size_dist_per_group.setdefault(ids[i], []).append(len(gts_list[i]))
         grouped_features.setdefault(ids[i], []).append(gt_features[i])
     return size_dist_per_group, grouped_features
 
@@ -93,7 +94,7 @@ def get_features_helper(nw, comm, node_labels, num_labels):
     e_list = s.edges()
     dist = []
     for e in e_list:
-        e = map(node_labels.get, e)
+        e = list(map(node_labels.get, e))
         e = common.get_canonical(e)
         dist.append(e)
     dist = common.normalize_counts(common.myCounter(dist))

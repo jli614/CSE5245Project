@@ -18,7 +18,8 @@ def load_comms(src, delim="\t", threshold=MIN_COM_SIZE):
                 continue
             if line.strip() == "":
                 continue
-            s = set(map(int, line.strip().split(delim)))
+            s = set(list(map(int, line.strip().split(delim))))
+            print(s)
             if len(s)<threshold:
                 continue
             gts[gtID] = s
@@ -32,7 +33,7 @@ def load_comms(src, delim="\t", threshold=MIN_COM_SIZE):
 def write_comms(name, comms_list):
     f = open(name, 'w')
     for comm in comms_list:
-        o = "\t".join(map(str,comm))+"\n"
+        o = "\t".join(list(map(str,comm)))+"\n"
         f.write(o)
     f.close()
 
@@ -45,7 +46,7 @@ def load_labels(src, delim="\t"):
             continue
         if line[0] == "-":
             continue
-        node, role = map(int,line.split(delim))
+        node, role = list(map(int,line.split(delim)))
         d[node] = role
     f.close()
     return d
@@ -58,15 +59,16 @@ def load_node_features(src,delim="\t"):
             continue
         parts = line.strip().split(delim)
         nodeID = int(parts[0])
-        features = map(float, parts[1:])
+        features = list(map(float, parts[1:]))
         d[nodeID] = features
     f.close()
     return d
 
 def make_dict(keys, values):
     d = {}
-    for i in range(len(keys)):
-        d[keys[i]] = values[i]
+    keys_list = list(keys)
+    for i in range(len(keys_list)):
+        d[keys_list[i]] = values[i]
     return d
 
 def myCounter(l):
@@ -99,8 +101,9 @@ def combined_helper(found_sets, GT_sets):
     d1 = {} #best match for an extracted community
     d2 = {} #best match for a known community
 
-    for i in range(len(GT_sets)):
-        gt = GT_sets[i]
+    GT_sets_list = list(GT_sets)
+    for i in range(len(GT_sets_list)):
+        gt = GT_sets_list[i]
         f_max = 0
 
         for j in range(len(found_sets)):

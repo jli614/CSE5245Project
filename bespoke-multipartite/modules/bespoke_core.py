@@ -1,5 +1,5 @@
 import sys, numpy, os, random, time
-import common, train
+from . import common, train
 from sklearn.cluster import KMeans
 
 def get_seed(gt_size, seed_dict):
@@ -18,7 +18,7 @@ def get_seed(gt_size, seed_dict):
 
 def get_supports(size_dist_per_group):
     d = {}
-    tot = float(sum(map(len, size_dist_per_group.values())))
+    tot = float(sum(list(map(len, size_dist_per_group.values()))))
     for g_id in size_dist_per_group:
         supp = len(size_dist_per_group[g_id])
         d[g_id] = supp/tot
