@@ -32,7 +32,7 @@ class MulitplexCommunityNetwork:
         return sets, mapping
 
     def make_edges(self, p_in, p_out):
-        edges = defaultdict(set())
+        edges = defaultdict(set)
         for i in range(self.m):
             for n1 in range(self.N):
                 for n2 in range(n1):
@@ -44,7 +44,7 @@ class MulitplexCommunityNetwork:
 
                     if rval < pval:
                         edges[i].add((n2, n1))
-            return edges
+        return edges
 
     def make_graph(self):
         Gs = defaultdict(nx.Graph)
