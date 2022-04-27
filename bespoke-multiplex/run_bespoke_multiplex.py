@@ -1,11 +1,14 @@
 import argparse, sys, os
-from modules import bespoke_core, common
+from multi_modules import bespoke_core, common
 
 def check_file_srcs(args):
     stat = True
-    if not os.path.isfile(args.nw_src):
-        print("Error: nw_src file not found")
-        stat = False
+    for i in range(args.layers):
+        nw_src = args.nw_src.replace('{i}', str(i))
+        if not os.path.isfile(nw_src):
+            print(f"Error: nw_src file {i} not found")
+            stat = False
+            break
     if not os.path.isfile(args.tr_src):
         print("Error: tr_src file not found")
         stat = False
@@ -24,11 +27,11 @@ def get_parser():
                                      and known(training) communities file. Please refer to the README \
                                      for details about each argument.')
     parser.add_argument('nw_src', help='Graph file. One edge per line.')
+    parser.add_argument('layers', type=int, help='Number of layers in multiplex network.', default=2)
     parser.add_argument('tr_src', help='File containing training comms.')
     parser.add_argument('num_find', type=int, help='Number communities to extract.')
     parser.add_argument('ls', help='File containing node labels.')
     parser.add_argument('op', help='Write discovered communities to this file.')
-
     parser.add_argument('--np', type=int, help='Number of subgraph patterns to extract. Default=5', default=5)
     parser.add_argument('--eval_src', help='File containing comms. to evaluate against.')
     return parser
@@ -48,7 +51,7 @@ if __name__ == '__main__':
     stat = check_file_srcs(a)
     if stat == True:
         print("\n###\t Beginning Bespoke\t###")
-        ret = bespoke_core.main(a.nw_src, a.tr_src, a.ls, a.num_find, a.np)
+        ret = bespoke_core.main(a.nw_src, a.layers, a.tr_src, a.ls, a.num_find, a.np)
         if ret != None:
             found_comms, KM_obj, tot_time, train_time = ret
             print("total_time(s):",tot_time)

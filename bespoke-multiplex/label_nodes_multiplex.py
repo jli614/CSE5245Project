@@ -1,5 +1,5 @@
 import numpy, sys, time, os
-from modules import common
+from multi_modules import common
 from sklearn.cluster import KMeans
 from scipy.stats.mstats import zscore
 import argparse
@@ -9,12 +9,12 @@ import argparse
 #####
 ##############################################
 
-def get_jaccard_dict(graph):
+def get_jaccard_dict(graph, i):
     '''
     input: graph, object of type SimpleNW
     output: dict, node --> [jaccard score dist.]
     '''
-    edges = set(graph.edges())
+    edges = set(graph.edges(i))
     jaccs = {}
     d_neigh = {}
 
@@ -23,13 +23,13 @@ def get_jaccard_dict(graph):
         if a in d_neigh:
             neigh_a = d_neigh[a]
         else:
-            neigh_a = set(graph.neighbors(a))
+            neigh_a = set(graph.neighbors(a, i))
             d_neigh[a] = neigh_a
 
         if b in d_neigh:
             neigh_b = d_neigh[b]
         else:
-            neigh_b = set(graph.neighbors(b))
+            neigh_b = set(graph.neighbors(b, i))
             d_neigh[b] = neigh_b
 
         if a not in jaccs:
@@ -98,30 +98,39 @@ def write_node_feature(data_dict, outname):
 
     f.close()
 
-def run_node_feature(graph_src, verbose=False):
+def run_node_feature(graph_src, layers, verbose=False):
     '''
     loads graph file, computes jaccard sim dist. for each
     node, summarizes the distribution, writes it to a file,
     returns file name
     '''
     print("processing ",graph_src)
-    src = graph_src
 
+    feature_dict = {}
     start = time.time()
-    g = common.load_SimpleNW_graph(src)
-    if verbose:
-        print("graph loaded in ", round(time.time()-start,2), "seconds")
-        print("-----------------")
-        sys.stdout.flush()
+    for i in range(layers):
+        src = graph_src.replace('{i}', str(i))
+        g = common.load_MultiNW_graph(src, layers)
+        if verbose:
+            print(f"graph layer{i} loaded in ", round(time.time()-start,2), "seconds")
+            print("-----------------")
+            sys.stdout.flush()
 
-    start = time.time()
-    jaccard_dict = get_jaccard_dict(g)
-    summarize_jacc_dict(jaccard_dict)
-    jaccard_dict = convert_jacc_dict_to_str(jaccard_dict)
+        start = time.time()
+        jaccard_dict = get_jaccard_dict(g, i)
+        summarize_jacc_dict(jaccard_dict)
+        
+        for key, jaccs in jaccard_dict.items():
+            if key not in feature_dict:
+                feature_dict[key] = []
+            feature_dict[key].extend(jaccs)
+
+    jaccard_dict = convert_jacc_dict_to_str(feature_dict)
     if verbose:
         print("jaccard percentiles computed in ", round(time.time()-start,2), "seconds")
         sys.stdout.flush()
 
+    src = graph_src.replace('{i}', '')
     out_name = src[src.rfind(os.sep)+1:]
     out_name = out_name.replace(".txt","_jacc_perc_NodeFeatures.txt")
     start = time.time()
@@ -190,6 +199,7 @@ def get_parser():
     parser = argparse.ArgumentParser(description='Description: Script to run node labeling on a given graph. \
                                      Please refer to the readme for details about each argument.')
     parser.add_argument('nw_src', help='Graph file. One edge per line.')
+    parser.add_argument('layers', type=int, help='Number of layers in multiplex network.', default=2)
     parser.add_argument('n_labels', type=int, help='Number of labels. Node is assigned 1 of N labels.', default=4)
     parser.add_argument('op', help='Write node labels to this file.')
     parser.add_argument('--verbose', help='enable verbosity.', action="store_true")
@@ -206,12 +216,7 @@ if __name__ == '__main__':
     except:
         exit()
     
-    graph_src = a.nw_src
-    K = a.n_labels
-    name = a.op
-    verbose = a.verbose
-
     print("\n###\tGenerating node labels\t###")
-    feature_src = run_node_feature(a.nw_src, a.verbose)
+    feature_src = run_node_feature(a.nw_src, a.layers, a.verbose)
     label_dict = process_graph(feature_src, a.n_labels, a.verbose)
     write_roles(label_dict, a.op, a.verbose)

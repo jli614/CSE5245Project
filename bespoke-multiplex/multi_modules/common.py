@@ -1,14 +1,14 @@
 import sys, operator, os
-import modules.SimpleNW as SimpleNW
+from . import MultiNW
 import numpy as np
 MIN_COM_SIZE = 2
 
-def load_SimpleNW_graph(srcFilePath, delim="\t"):
-    nw = SimpleNW.SimpleNW()
-    nw.load_ugraph_from_file(srcFilePath,delim)
+def load_MultiNW_graph(srcFilePath, layers, delim="\t"):
+    nw = MultiNW.MultiNW()
+    nw.load_ugraph_from_file(srcFilePath, layers, delim)
     return nw
 
-def load_comms(src, delim="\t", threshold=MIN_COM_SIZE):
+def load_comms(src, delim="\t", threshold=MIN_COM_SIZE, verbose=True):
     f = open(src,'r')
     gts = {}
     gtID = 1
@@ -19,7 +19,8 @@ def load_comms(src, delim="\t", threshold=MIN_COM_SIZE):
             if line.strip() == "":
                 continue
             s = set(list(map(int, line.strip().split(delim))))
-            print(s)
+            if verbose:
+                print(s)
             if len(s)<threshold:
                 continue
             gts[gtID] = s

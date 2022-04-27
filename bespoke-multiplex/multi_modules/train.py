@@ -14,8 +14,8 @@ def get_ordered_canonical_label_pairs(num_labels):
             seen.add(pair)
     return ordered
 
-def get_node_score_degree(nw, node, biases, node_labels):
-    neigh = nw.neighbors(node)
+def get_node_score_degree(nw, node, i, biases, node_labels):
+    neigh = nw.neighbors(node, i)
     labels = list(map(node_labels.get, neigh))
     labels = common.myCounter(labels)
     root_l = node_labels[node]
@@ -26,18 +26,18 @@ def get_node_score_degree(nw, node, biases, node_labels):
         score += labels[l]*bias
     return score, len(neigh)
 
-def get_node_order_by_degree(nw, biases, node_labels):
+def get_node_order_by_avg_degree(nw, i, biases, node_labels):
     nodes = nw.nodes()
     d = {}
     pass1_scores = {}
     for node in nodes:
-        score, degree = get_node_score_degree(nw, node, biases, node_labels)
+        score, degree = get_node_score_degree(nw, node, i, biases, node_labels)
         score = score/degree
         pass1_scores[node] = score
 
     for node in nodes:
-        degree = nw.degree(node)
-        score = get_weighted_avg(nw, node, pass1_scores)
+        degree = nw.degree(node, i)
+        score = get_weighted_avg(nw, node, i, pass1_scores)
         if degree not in d:
             ordered_list = topN.topN(len(nodes))
             d[degree] = ordered_list
@@ -47,13 +47,13 @@ def get_node_order_by_degree(nw, biases, node_labels):
         d[degree].insert_update(node, score)
     return d
 
-def get_weighted_avg(nw, node, scores):
-    neighs = nw.neighbors(node)
+def get_weighted_avg(nw, node, i, scores):
+    neighs = nw.neighbors(node, i)
     s = 0.0
     all_deg = 0.0
     for n in neighs:
         n_score = scores[n]
-        n_deg = nw.degree(n)
+        n_deg = nw.degree(n, i)
         s+=(n_score*n_deg)
         all_deg+=n_deg
     s/=all_deg
@@ -70,13 +70,13 @@ def get_biases(features, num_labels, node_labels):
         d[ordered_pairs[i]] = (means[i], devs[i])
     return d
 
-def get_seed_infos(nw, grouped_features, node_labels, num_labels, nclus):
+def get_seed_infos(nw, i, grouped_features, node_labels, num_labels, nclus):
     seeds_by_group = {}
     biases_by_group = {}
     for group_id in grouped_features.keys():
         biases = get_biases(grouped_features[group_id], num_labels, node_labels)
         biases_by_group[group_id] = biases
-        node_order_by_degree = get_node_order_by_degree(nw, biases, node_labels)
+        node_order_by_degree = get_node_order_by_avg_degree(nw, i, biases, node_labels)
         seeds_by_group[group_id] = node_order_by_degree
     return seeds_by_group, biases_by_group
 
@@ -89,9 +89,9 @@ def make_groups(ids, gts, gt_features):
         grouped_features.setdefault(ids[i], []).append(gt_features[i])
     return size_dist_per_group, grouped_features
 
-def get_features_helper(nw, comm, node_labels, num_labels):
-    s = nw.subgraph(comm)
-    e_list = s.edges()
+def get_features_helper(nw, comm, i, node_labels, num_labels):
+    s = nw.subgraph(comm, i)
+    e_list = s.edges(i)
     dist = []
     for e in e_list:
         e = list(map(node_labels.get, e))
@@ -105,20 +105,26 @@ def get_features_helper(nw, comm, node_labels, num_labels):
         feature_vector.append(r)
     return feature_vector
 
-def get_features(nw, comms, node_labels, num_labels):
+def get_features(nw, layers, comms, node_labels, num_labels):
     comms_features = []
     for comm in comms:
-        feature_vector = get_features_helper(nw, comm, node_labels, num_labels)
-        comms_features.append(feature_vector)
+        total_vector = []
+        for i in range(layers):
+            feature_vector = get_features_helper(nw, comm, i, node_labels, num_labels)
+            total_vector.extend(feature_vector)
+        comms_features.append(total_vector)
     return comms_features
 
-def train(nw, gts, node_labels, nclus, Simple=False):
+def train(nw, layers, gts, node_labels, nclus, Simple=False):
     num_labels = len(set(node_labels.values()))
-    gt_features = get_features(nw, gts, node_labels, num_labels)
+    gt_features = get_features(nw, layers, gts, node_labels, num_labels)
     KM_obj = KMeans(nclus)
     gt_labels = KM_obj.fit_predict(gt_features)
     size_dist_per_group, grouped_features = make_groups(gt_labels, gts, gt_features)
     if Simple:
         return KM_obj, size_dist_per_group
-    seed_info_per_group, biases_by_group = get_seed_infos(nw, grouped_features, node_labels, num_labels, nclus)
-    return KM_obj, size_dist_per_group, seed_info_per_group
+    seed_info_per_group_by_layer = {}
+    for i in range(layers):
+        seed_info_per_group, biases_by_group = get_seed_infos(nw, i, grouped_features, node_labels, num_labels, nclus)
+        seed_info_per_group_by_layer[i] = seed_info_per_group
+    return KM_obj, size_dist_per_group, seed_info_per_group_by_layer
