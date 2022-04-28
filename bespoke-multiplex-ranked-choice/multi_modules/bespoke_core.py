@@ -23,10 +23,10 @@ def get_seed_ranked(gt_size, seeds_by_layer_group, group_id, n=10, exclude=[]):
     for i in seeds_by_layer_group:
         tops = get_top_seeds(gt_size, seeds_by_layer_group[i][group_id], n=n)
         for i, (seed, new_deg) in enumerate(tops):
-            scores[seed] += i
+            scores[seed] += n - i
             degrees[seed].append(new_deg)
     while scores:
-        seed = min(scores, key = lambda c: scores[c])
+        seed = max(scores, key = lambda c: scores[c])
         if seed in exclude:
             scores.pop(seed)
         else:
@@ -80,7 +80,6 @@ def get_comms(nw, num_find, seeds_by_layer_group, size_dist_per_group, KM_obj, n
         group_id = pick_pattern(pattern_supports)
         size_dist = size_dist_per_group[group_id]
         size = pick_size(size_dist)
-        print(seeds_by_layer_group.keys())
         ### first key is layer, second key is group. This is an indexing problem!
         seed, new_deg = get_seed_ranked(size, seeds_by_layer_group, group_id)
         if unique_seeds:
