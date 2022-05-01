@@ -7,22 +7,25 @@ import argparse
 
 def run(graph_src, outfile, verbose=False):
 
-    print(graph_src[0])
-    g1 = common.load_SimpleNW_graph(graph_src[0])
+    #print(graph_src[0])
+    #g1 = common.load_SimpleNW_graph(graph_src[0])
     
-    for i in range(1, len(graph_src)):
-        src = graph_src[i]
+    #for i in range(1, len(graph_src)):
+
+    new_dict = {}
+
+    for src in graph_src:
+        #src = graph_src[i]
         print(src)
-        g2 = common.load_SimpleNW_graph(src)
+        g = common.load_SimpleNW_graph(src)
 
-        new_dict = Counter(g1.edge_weights_dict) + Counter(g2.edge_weights_dict)
-        g1 = new_dict
+        new_dict = Counter(new_dict) + Counter(g.edge_weights_dict)
 
-    print(len(g1))
+    print(len(new_dict))
     #print(g1)
 
     f = open(outfile, "w")
-    for k, v in g1.items():
+    for k, v in new_dict.items():
         #print(str(k[0]) + "\t" + str(k[1]) + "\t" + str(v) + "\n")
         f.write(str(k[0]) + "\t" + str(k[1]) + "\t" + str(v) + "\n")
         
