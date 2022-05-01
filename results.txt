@@ -1,0 +1,9 @@
+N 1000 L 3 C 50 Pin 0.95 Pout 0.05 Nfeats 4
+Ranked Choice
+F1 Score: 0.4389
+Weighted
+F1 Score: 0.1817
+Layer-wise
+F1 Score: 0.3264
+F1 Score: 0.3223
+F1 Score: 0.3395

@@ -1,0 +1,28 @@
+
+###	Generating node labels	###
+processing  MyGraph_edgelist_layer2.txt
+
+####	Input arguments	###
+nw_src --> MyGraph_edgelist_layer2.txt
+tr_src --> MyGraph_training.txt
+num_find --> 200
+ls --> MyGraph_labels.txt
+op --> MyGraph_bespoke.txt
+np --> 5
+eval_src --> MyGraph_communities.txt
+####
+
+
+###	 Beginning Bespoke	###
+Training...
+Training complete...
+Beginning extraction...
+Extraction complete.
+total_time(s): 0.97
+training_time(s): 0.97
+Writing extracted communities to file: MyGraph_bespoke.txt ...
+done
+###	 End of Bespoke	###
+
+Scoring extracted communities (may take a lot of time)...
+F1 Score: 0.3395

@@ -17,12 +17,12 @@ def run(graph_src, layers, outfile, verbose=False):
     for i in range(layers):
     
         src = graph_src.replace('{i}', str(i))
-        print(src)
+        # print(src)
         g = common.load_SimpleNW_graph(src)
 
         new_dict = Counter(new_dict) + Counter(g.edge_weights_dict)
 
-    print(len(new_dict))
+    # print(len(new_dict))
     #print(g1)
 
     f = open(outfile, "w")
