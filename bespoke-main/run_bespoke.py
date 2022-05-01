@@ -48,7 +48,7 @@ if __name__ == '__main__':
     stat = check_file_srcs(a)
     if stat == True:
         print("\n###\t Beginning Bespoke\t###")
-        ret = bespoke_core.main(a.nw_src, a.tr_src, a.ls, a.num_find, a.np)
+        ret = bespoke_core.main(a.nw_src, a.tr_src, a.ls, a.num_find, a.np, unique_seeds=True)
         if ret != None:
             found_comms, KM_obj, tot_time, train_time = ret
             print("total_time(s):",tot_time)

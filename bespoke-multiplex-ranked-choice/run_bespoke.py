@@ -51,7 +51,7 @@ if __name__ == '__main__':
     stat = check_file_srcs(a)
     if stat == True:
         print("\n###\t Beginning Bespoke\t###")
-        ret = bespoke_core.main(a.nw_src, a.layers, a.tr_src, a.ls, a.num_find, a.np)
+        ret = bespoke_core.main(a.nw_src, a.layers, a.tr_src, a.ls, a.num_find, a.np, unique_seeds=True)
         if ret != None:
             found_comms, KM_obj, tot_time, train_time = ret
             print("total_time(s):",tot_time)
@@ -63,7 +63,7 @@ if __name__ == '__main__':
 
 
             if a.eval_src!=None:
-                test_comms = common.load_comms(a.eval_src)
+                test_comms = common.load_comms(a.eval_src, verbose=False)
                 if len(test_comms)==0:
                     print("No test comms of size >3 found. Cannot evaluate found communities.")
                     exit()

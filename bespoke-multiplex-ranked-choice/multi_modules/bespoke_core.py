@@ -86,7 +86,7 @@ def get_comms(nw, num_find, seeds_by_layer_group, size_dist_per_group, KM_obj, n
             exclude = set()
             while seen.get(seed, 0) > rep_th:
                 exclude.add(seed)
-                seed, new_deg = get_seed_ranked(size, seeds_by_layer_group, exclude=exclude)
+                seed, new_deg = get_seed_ranked(size, seeds_by_layer_group, group_id, exclude=exclude)
         ### Start growing (Stopped here)
         comm = nw.rand_subgraph_nodes(size, seed)
         if len(comm)>=common.MIN_COM_SIZE:

@@ -1,16 +1,41 @@
+#!/bin/bash
 set -e
+                    
+# python bespoke-multiplex-ranked-choice/label_nodes.py ./data/dkpol_edgelist_layer{i}.txt 3 5 ./data/dkpol_labels.txt
+# python bespoke-multiplex-ranked-choice/run_bespoke.py ./data/dkpol_edgelist_layer{i}.txt 3 ./data/dkpol_training.txt 50 \
+#                                         ./data/dkpol_labels.txt ./data/dkpol_bespoke.txt --eval_src ./data/dkpol_communities.txt
 
-# python make_multipartite.py -N 2000 -r 2 -c 25 -pin 0.9 -pout 0.05 -name MyGraph
-# python bespoke-multipartite/label_nodes.py MyGraph_edgelist.txt 5 MyGraph_labels.txt
-# python bespoke-multipartite/run_bespoke.py MyGraph_edgelist.txt MyGraph_training.txt 25 \
-#                                            MyGraph_labels.txt MyGraph_bespoke.txt --eval_src MyGraph_communities.txt
+# python bespoke-main/label_nodes.py ./data/dkpol_edgelist_layer0.txt 5 ./data/dkpol_labels.txt
+# python bespoke-main/run_bespoke.py ./data/dkpol_edgelist_layer0.txt ./data/dkpol_training.txt 50 \
+#                                         ./data/dkpol_labels.txt ./data/dkpol_bespoke.txt --eval_src ./data/dkpol_communities.txt
 
-python make_multiplex.py -N 3000 -m 3 -c 50 -pin 0.95 -pout 0.01 -name MyGraph
+N=1000
+L=3
+C=50
+Pin=0.95
+Pout=0.01
+Nfeats=4
+Cfind=$(($N / 5))
 
-python bespoke-multiplex-ranked-choice/label_nodes.py MyGraph_edgelist_layer{i}.txt 3 5 MyGraph_labels.txt
-python bespoke-multiplex-ranked-choice/run_bespoke.py MyGraph_edgelist_layer{i}.txt 3 MyGraph_training.txt 500 \
+python make_multiplex.py -N $N -m $L -c $C -pin $Pin -pout $Pout -name MyGraph
+
+python bespoke-multiplex-ranked-choice/label_nodes.py MyGraph_edgelist_layer{i}.txt $L $Nfeats MyGraph_labels.txt
+python bespoke-multiplex-ranked-choice/run_bespoke.py MyGraph_edgelist_layer{i}.txt $L MyGraph_training.txt $Cfind \
                                         MyGraph_labels.txt MyGraph_bespoke.txt --eval_src MyGraph_communities.txt
 
-python bespoke-main/label_nodes.py MyGraph_edgelist_layer0.txt 5 MyGraph_labels.txt
-python bespoke-main/run_bespoke.py MyGraph_edgelist_layer0.txt MyGraph_training.txt 500 \
-                                        MyGraph_labels.txt MyGraph_bespoke.txt --eval_src MyGraph_communities.txt
+
+python bespoke-multiplex-weighted/combine_graph.py MyGraph_edgelist_layer{i}.txt --layers $L\
+                                          --out MyGraph_edgelist_layer_combined.txt
+python bespoke-multiplex-weighted/label_nodes.py MyGraph_edgelist_layer_combined.txt $Nfeats MyGraph_labels.txt
+python bespoke-multiplex-weighted/run_bespoke.py MyGraph_edgelist_layer_combined.txt MyGraph_training.txt $Cfind \
+                                                 MyGraph_labels.txt MyGraph_bespoke.txt --eval_src MyGraph_communities.txt
+
+
+
+for ((i=0 ; i<$L ; i++));
+do
+    echo $i
+    python bespoke-main/label_nodes.py "MyGraph_edgelist_layer${i}.txt" $Nfeats MyGraph_labels.txt
+    python bespoke-main/run_bespoke.py "MyGraph_edgelist_layer${i}.txt" MyGraph_training.txt $Cfind \
+        MyGraph_labels.txt MyGraph_bespoke.txt --eval_src MyGraph_communities.txt
+done                          

@@ -19,7 +19,7 @@ def load_comms(src, delim="\t", threshold=MIN_COM_SIZE):
             if line.strip() == "":
                 continue
             s = set(list(map(int, line.strip().split(delim))))
-            print(s)
+            # print(s)
             if len(s)<threshold:
                 continue
             gts[gtID] = s
